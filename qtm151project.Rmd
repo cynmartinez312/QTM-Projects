@@ -1,0 +1,110 @@
+---
+title: "Untitled"
+author: "Cynthia Martinez"
+date: '2023-04-18'
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggthemes)
+library(plotly)
+library(nycflights13)
+library(lubridate)
+library(anyflights)
+```
+
+## 
+
+```{r}
+aline <- get_airlines()
+aport<- get_airports()
+
+JFK2020<-get_flights("JFK", 2020)%>%
+  inner_join(aline,by="carrier") %>%
+  inner_join(aport,by=c("origin"="faa")) %>%
+  inner_join(aport, by=c("dest"="faa"), suffix=c("_origin","_dest"))
+
+JFK2013<-get_flights("JFK", 2013)%>%
+  inner_join(aline,by="carrier") %>%
+  inner_join(aport,by=c("origin"="faa")) %>%
+  inner_join(aport, by=c("dest"="faa"), suffix=c("_origin","_dest"))
+
+JFK2001<-get_flights("JFK", 2001)%>%
+  inner_join(aline,by="carrier") %>%
+  inner_join(aport,by=c("origin"="faa")) %>%
+  inner_join(aport, by=c("dest"="faa"), suffix=c("_origin","_dest"))
+
+LGA2020<-get_flights("LGA", 2020)%>%
+  inner_join(aline,by="carrier") %>%
+  inner_join(aport,by=c("origin"="faa")) %>%
+  inner_join(aport, by=c("dest"="faa"), suffix=c("_origin","_dest"))
+
+LGA2013<-get_flights("LGA", 2013)%>%
+  inner_join(aline,by="carrier") %>%
+  inner_join(aport,by=c("origin"="faa")) %>%
+  inner_join(aport, by=c("dest"="faa"), suffix=c("_origin","_dest"))
+
+LGA2001<-get_flights("LGA", 2001)%>%
+  inner_join(aline,by="carrier") %>%
+  inner_join(aport,by=c("origin"="faa")) %>%
+  inner_join(aport, by=c("dest"="faa"), suffix=c("_origin","_dest"))
+
+EWR2020<-get_flights("EWR", 2020)%>%
+  inner_join(aline,by="carrier") %>%
+  inner_join(aport,by=c("origin"="faa")) %>%
+  inner_join(aport, by=c("dest"="faa"), suffix=c("_origin","_dest"))
+
+EWR2013<-get_flights("EWR", 2013)%>%
+  inner_join(aline,by="carrier") %>%
+  inner_join(aport,by=c("origin"="faa")) %>%
+  inner_join(aport, by=c("dest"="faa"), suffix=c("_origin","_dest"))
+
+EWR2001<-get_flights("EWR", 2001)%>%
+  inner_join(aline,by="carrier") %>%
+  inner_join(aport,by=c("origin"="faa")) %>%
+  inner_join(aport, by=c("dest"="faa"), suffix=c("_origin","_dest"))
+
+df <- rbind(LGA2001,JFK2001,EWR2001,LGA2013,JFK2013,EWR2013,LGA2020,JFK2020,EWR2020)
+
+write.csv("flights-data2.csv", row.names=FALSE)
+```
+
+## Average Departure Delays Per Month for Each Year
+
+```{r}
+delays2020<- df %>%
+  drop_na()%>%
+  filter(year==2020) %>%
+  group_by(month)%>%
+  summarise(avg_dep_delay=mean(dep_delay, na.rm=TRUE))
+
+delays2013<- df %>%
+  drop_na()%>%
+  filter(year==2013) %>%
+  group_by(month)%>%
+  summarise(avg_dep_delay=mean(dep_delay, na.rm=TRUE))
+
+delays2001<- df %>%
+  drop_na()%>%
+  filter(year==2001) %>%
+  group_by(month)%>%
+  summarise(avg_dep_delay=mean(dep_delay, na.rm=TRUE))
+
+
+delays<- data.frame(delays2001,delays2013,delays2020)
+
+delaysfig <- plot_ly(delays, x = ~month, y = ~avg_dep_delay, name = '2001', type = 'scatter', mode = 'lines+markers') 
+
+delaysfig <- delaysfig %>% add_trace(x= ~month.1, y = ~avg_dep_delay.1, name = '2013', mode = 'lines+markers') 
+
+delaysfig <- delaysfig %>% add_trace(x= ~month.2, y = ~avg_dep_delay.2, name = '2020', mode = 'lines+markers')
+
+delaysfig <- delaysfig %>% layout(title = "Average Departure Delay",
+         xaxis = list(title = "Month"),
+         yaxis = list (title = "Minutes"))
+
+delaysfig
+```
